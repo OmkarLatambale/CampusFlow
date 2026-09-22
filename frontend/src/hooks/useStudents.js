@@ -10,9 +10,17 @@ export const useStudents = () => {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    currentPage: 1,
+    nextPage: null,
+    previousPage: null,
+  })
   const [filters, setFilters] = useState({
     search: '',
-    age: '',
+    page: 1,
   })
 
   const fetchStudents = useCallback(async (activeFilters = filters) => {
@@ -23,6 +31,7 @@ export const useStudents = () => {
 
     if (response.status === 'success') {
       setStudents(response.data)
+      setPagination(response.pagination)
     } else {
       setError(response.data)
       toast.error(response.data)
@@ -41,7 +50,13 @@ export const useStudents = () => {
   const applyFilters = useCallback(
     (event) => {
       event.preventDefault()
-      fetchStudents(filters)
+      const firstPageFilters = {
+        ...filters,
+        page: 1,
+      }
+
+      setFilters(firstPageFilters)
+      fetchStudents(firstPageFilters)
     },
     [fetchStudents, filters],
   )
@@ -49,12 +64,29 @@ export const useStudents = () => {
   const clearFilters = useCallback(() => {
     const emptyFilters = {
       search: '',
-      age: '',
+      page: 1,
     }
 
     setFilters(emptyFilters)
     fetchStudents(emptyFilters)
   }, [fetchStudents])
+
+  const changePage = useCallback(
+    (page) => {
+      if (!page || page === filters.page) {
+        return
+      }
+
+      const nextFilters = {
+        ...filters,
+        page,
+      }
+
+      setFilters(nextFilters)
+      fetchStudents(nextFilters)
+    },
+    [fetchStudents, filters],
+  )
 
   const removeStudent = useCallback(async (id) => {
     const response = await deleteStudent(id)
@@ -76,6 +108,7 @@ export const useStudents = () => {
 
       if (response.status === 'success') {
         setStudents(response.data)
+        setPagination(response.pagination)
       } else {
         setError(response.data)
         toast.error(response.data)
@@ -91,11 +124,13 @@ export const useStudents = () => {
     students,
     loading,
     error,
+    pagination,
     filters,
     fetchStudents,
     updateFilter,
     applyFilters,
     clearFilters,
+    changePage,
     removeStudent,
   }
 }

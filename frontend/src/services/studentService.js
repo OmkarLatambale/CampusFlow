@@ -21,12 +21,41 @@ const getStudentsData = (data) => {
   return null
 }
 
+const getPageFromUrl = (url) => {
+  if (!url) {
+    return null
+  }
+
+  const parsedUrl = new URL(url, window.location.origin)
+  return Number(parsedUrl.searchParams.get('page') || 1)
+}
+
+const getPaginationData = (data, currentPage) => {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return {
+      count: Array.isArray(data) ? data.length : 0,
+      next: null,
+      previous: null,
+      currentPage,
+    }
+  }
+
+  return {
+    count: data.count || 0,
+    next: data.next,
+    previous: data.previous,
+    currentPage,
+    nextPage: getPageFromUrl(data.next),
+    previousPage: getPageFromUrl(data.previous),
+  }
+}
+
 export const getStudents = async (filters = {}) => {
   try {
     const response = await axiosInstance.get('students/', {
       params: {
         search: filters.search || undefined,
-        age: filters.age || undefined,
+        page: filters.page || undefined,
       },
     })
     const students = getStudentsData(response.data)
@@ -38,7 +67,11 @@ export const getStudents = async (filters = {}) => {
       }
     }
 
-    return { status: 'success', data: students }
+    return {
+      status: 'success',
+      data: students,
+      pagination: getPaginationData(response.data, filters.page || 1),
+    }
   } catch (error) {
     const message = getErrorMessage(error, 'Failed to fetch students.')
     return { status: 'error', data: message }

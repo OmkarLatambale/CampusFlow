@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Student
 from .serializers import StudentSerializer
@@ -11,29 +12,35 @@ from django.db.models import Q
 
 class StudentListCreateView(APIView):
 
-   def get(self, request):
+    def get(self, request):
 
-    search = request.query_params.get('search')
-    age = request.query_params.get('age')
+        search = request.query_params.get('search')
 
-    students = Student.objects.all()
+        students = Student.objects.all()
 
-    if search:
-        students = students.filter(
-            Q(name__icontains=search) |
-            Q(email__icontains=search)
-        )
+        if search:
+            students = students.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search)
+            )
 
-    if age:
-        students = students.filter(age=age)
+        paginator = PageNumberPagination()
 
-    serializer = StudentSerializer(
-        students,
-        many=True
+        students = paginator.paginate_queryset(
+            students,
+            request
     )
 
-    return Response(serializer.data)
+        serializer = StudentSerializer(
+            students,
+            many=True
+        )
 
+        return paginator.get_paginated_response(
+            serializer.data
+    )
+
+    
     def post(self, request):
         serializer = StudentSerializer(
             data=request.data
