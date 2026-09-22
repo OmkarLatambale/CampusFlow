@@ -21,9 +21,14 @@ const getStudentsData = (data) => {
   return null
 }
 
-export const getStudents = async () => {
+export const getStudents = async (filters = {}) => {
   try {
-    const response = await axiosInstance.get('students/')
+    const response = await axiosInstance.get('students/', {
+      params: {
+        search: filters.search || undefined,
+        age: filters.age || undefined,
+      },
+    })
     const students = getStudentsData(response.data)
 
     if (!students) {

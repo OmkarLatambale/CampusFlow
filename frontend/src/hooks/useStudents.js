@@ -10,12 +10,16 @@ export const useStudents = () => {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [filters, setFilters] = useState({
+    search: '',
+    age: '',
+  })
 
-  const fetchStudents = useCallback(async () => {
+  const fetchStudents = useCallback(async (activeFilters = filters) => {
     setLoading(true)
     setError('')
 
-    const response = await getStudents()
+    const response = await getStudents(activeFilters)
 
     if (response.status === 'success') {
       setStudents(response.data)
@@ -25,7 +29,32 @@ export const useStudents = () => {
     }
 
     setLoading(false)
+  }, [filters])
+
+  const updateFilter = useCallback((name, value) => {
+    setFilters((current) => ({
+      ...current,
+      [name]: value,
+    }))
   }, [])
+
+  const applyFilters = useCallback(
+    (event) => {
+      event.preventDefault()
+      fetchStudents(filters)
+    },
+    [fetchStudents, filters],
+  )
+
+  const clearFilters = useCallback(() => {
+    const emptyFilters = {
+      search: '',
+      age: '',
+    }
+
+    setFilters(emptyFilters)
+    fetchStudents(emptyFilters)
+  }, [fetchStudents])
 
   const removeStudent = useCallback(async (id) => {
     const response = await deleteStudent(id)
@@ -62,7 +91,11 @@ export const useStudents = () => {
     students,
     loading,
     error,
+    filters,
     fetchStudents,
+    updateFilter,
+    applyFilters,
+    clearFilters,
     removeStudent,
   }
 }

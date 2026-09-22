@@ -2,7 +2,16 @@ import { Link } from 'react-router-dom'
 import { useStudents } from '../hooks/useStudents'
 
 function StudentListPage() {
-  const { students, loading, error, removeStudent } = useStudents()
+  const {
+    students,
+    loading,
+    error,
+    filters,
+    updateFilter,
+    applyFilters,
+    clearFilters,
+    removeStudent,
+  } = useStudents()
   const studentList = Array.isArray(students) ? students : []
 
   return (
@@ -28,6 +37,61 @@ function StudentListPage() {
             Add student
           </Link>
         </div>
+
+        <form
+          onSubmit={applyFilters}
+          className="mt-6 grid gap-3 rounded-lg border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_160px_auto_auto]"
+        >
+          <div>
+            <label
+              htmlFor="student-search"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Search
+            </label>
+            <input
+              id="student-search"
+              type="search"
+              value={filters.search}
+              onChange={(event) => updateFilter('search', event.target.value)}
+              placeholder="Search by name or email"
+              className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="student-age"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Age
+            </label>
+            <input
+              id="student-age"
+              type="number"
+              min="1"
+              value={filters.age}
+              onChange={(event) => updateFilter('age', event.target.value)}
+              placeholder="Age"
+              className="mt-2 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="self-end rounded-md bg-black px-4 py-2 text-sm font-medium text-white"
+          >
+            Search
+          </button>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="self-end rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+          >
+            Clear
+          </button>
+        </form>
 
         {loading && (
           <div className="mt-8 rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">

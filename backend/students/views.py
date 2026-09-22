@@ -5,20 +5,34 @@ from rest_framework import status
 from .models import Student
 from .serializers import StudentSerializer
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 
 
 class StudentListCreateView(APIView):
 
-    def get(self, request):
-        students = Student.objects.all()
+   def get(self, request):
 
-        serializer = StudentSerializer(
-            students,
-            many=True
+    search = request.query_params.get('search')
+    age = request.query_params.get('age')
+
+    students = Student.objects.all()
+
+    if search:
+        students = students.filter(
+            Q(name__icontains=search) |
+            Q(email__icontains=search)
         )
 
-        return Response(serializer.data)
+    if age:
+        students = students.filter(age=age)
+
+    serializer = StudentSerializer(
+        students,
+        many=True
+    )
+
+    return Response(serializer.data)
 
     def post(self, request):
         serializer = StudentSerializer(
